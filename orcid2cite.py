@@ -54,7 +54,33 @@ def names(ref):
         given_in = _item['given'].split(' ')
         given = ''.join([_name[0] + '.' for _name in given_in])
         name.append(_item['family'] + ', ' + given + ', ')
-    return ''.join(name[0:-1]) + 'and ' + name[-1][0:-2]
+    return ''.join(name)
+
+
+class Publication(dict):
+
+    def __init__(self, doi, session=CrossRefClient()):
+        self['DOI'] = doi
+        out = session.doi2json(doi)
+        self['authors']= names(out)
+        self['year'] = int(out['created']['date-parts'][0][0])
+        self['title'] = out['title']
+        self['journal_short'] = out['container-title-short']
+        self['volume'] = str(out['volume'])
+        if 'article-number' in out.keys():
+            self['pages'] = str(out['article-number'])
+        else:
+            self['pages'] = out['page']
+
+    def __str__(self):
+        string = self['authors'] + ' ' + \
+            self['title'] + '. ' + \
+            self['journal_short'] + '. ' + \
+            str(self['year']) + '. ' + \
+            self['volume'] + ':' + \
+            self['pages'] + '. ' + \
+            'doi: ' + self['DOI']
+        return string
 
 
 def main():
@@ -87,26 +113,10 @@ def main():
         doi_list.append(href)
 
     session = CrossRefClient()
-    for doi in doi_list:
-        out = session.doi2json(doi)
-        authors = names(out)
-        year = str(out['created']['date-parts'][0][0])
-        title = out['title']
-        journal_short = out['container-title-short']
-        volume = str(out['volume'])
-        if 'article-number' in out.keys():
-            pages = str(out['article-number'])
-        else:
-            pages = out['page']
-        print(prefix +
-              authors + ' ' +
-              year + '. ' +
-              title + '. ' +
-              journal_short + '. ' +
-              volume + ':' +
-              pages + '. ' +
-              'doi:' + doi + '.' +
-              suffix)
+    pubs = [Publication(doi, session) for doi in doi_list]
+    pubs.sort(reverse=True, key = lambda x: x['year'])
+    for pub in pubs:
+        print(prefix + str(pub) + suffix)
 
 
 if __name__ == '__main__':

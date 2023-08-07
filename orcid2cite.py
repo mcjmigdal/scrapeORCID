@@ -54,6 +54,7 @@ def names(ref):
         given_in = _item['given'].split(' ')
         given = ''.join([_name[0] + '.' for _name in given_in])
         name.append(_item['family'] + ', ' + given + ', ')
+    name[-1] = name[-1][:-2]
     return ''.join(name)
 
 

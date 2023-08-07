@@ -6,6 +6,7 @@
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from sys import argv, exit
+from time import sleep
 import re, requests
 
 usage = "orcid2cite.py ORCIDID [prefix='<li>' suffix='</li>']"
@@ -73,6 +74,7 @@ def main():
     url = 'https://orcid.org/' + orcid
     driver = webdriver.Firefox()
     driver.get(url)
+    sleep(5)
     page_source = driver.page_source
     driver.close()
     soup = BeautifulSoup(page_source, 'html.parser')
